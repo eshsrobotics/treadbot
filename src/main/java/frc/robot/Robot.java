@@ -17,16 +17,28 @@ public class Robot extends TimedRobot {
   private DifferentialDrive m_myRobot;
   private Joystick m_leftStick;
   private Joystick m_rightStick;
+  private final int FRONT_LEFT_MOTOR_PORT = 2;
+  private final int BACK_LEFT_MOTOR_PORT = 2;
+  private final int FRONT_RIGHT_MOTOR_PORT = 2;
+  private final int BACK_RIGHT_MOTOR_PORT = 2;
+  private SpeedController frontLeft = new PWMSparkMax(FRONT_LEFT_MOTOR_PORT);
+  private SpeedController backLeft = new PWMSparkMax(BACK_LEFT_MOTOR_PORT);
+  private SpeedController frontRight = new PWMSparkMax(FRONT_RIGHT_MOTOR_PORT);
+  private SpeedController backRight = new PWMSparkMax(BACK_RIGHT_MOTOR_PORT);
+  private SpeedControllerGroup leftGroup = new SpeedControllerGroup(frontLeft, backLeft);
+  private SpeedControllerGroup rightGroup = new SpeedControllerGroup(frontRight, backRight);
+
+
 
   @Override
   public void robotInit() {
-    m_myRobot = new DifferentialDrive(new PWMVictorSPX(0), new PWMVictorSPX(1));
+    m_myRobot = new DifferentialDrive(leftGroup, rightGroup);
     m_leftStick = new Joystick(0);
     m_rightStick = new Joystick(1);
   }
 
   @Override
   public void teleopPeriodic() {
-    m_myRobot.tankDrive(m_leftStick.getY(), m_rightStick.getY());
+    m_myRobot.tankDrive(m_leftStick.getY(), m_rightStick.getY(), true);
   }
 }
