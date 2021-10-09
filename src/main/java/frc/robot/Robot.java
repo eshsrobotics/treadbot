@@ -5,18 +5,24 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PWMSparkMax;
 import edu.wpi.first.wpilibj.PWMVictorSPX;
+import edu.wpi.first.wpilibj.SpeedController;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 /**
- * This is a demo program showing the use of the RobotDrive class, specifically it contains the code
- * necessary to operate a robot with tank drive.
+ * This is a demo program showing the use of the RobotDrive class, specifically
+ * it contains the code necessary to operate a robot with tank drive.
  */
 public class Robot extends TimedRobot {
   private DifferentialDrive m_myRobot;
   private Joystick m_leftStick;
   private Joystick m_rightStick;
+  private XboxController controller = null;
   private final int FRONT_LEFT_MOTOR_PORT = 2;
   private final int BACK_LEFT_MOTOR_PORT = 2;
   private final int FRONT_RIGHT_MOTOR_PORT = 2;
@@ -33,12 +39,16 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_myRobot = new DifferentialDrive(leftGroup, rightGroup);
-    m_leftStick = new Joystick(0);
-    m_rightStick = new Joystick(1);
+    // m_leftStick = new Joystick(0);
+    // m_rightStick = new Joystick(1);
+
+    // If there is no controller plugged in, code will be angry 
+    // so make sure you have a controller plugged in when starting the robot
+    this.controller = new XboxController(0);
   }
 
   @Override
   public void teleopPeriodic() {
-    m_myRobot.tankDrive(m_leftStick.getY(), m_rightStick.getY(), true);
+    m_myRobot.tankDrive(controller.getY(Hand.kLeft), controller.getY(Hand.kRight), true);
   }
 }
