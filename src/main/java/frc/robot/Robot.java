@@ -24,9 +24,9 @@ public class Robot extends TimedRobot {
   private Joystick m_rightStick;
   private XboxController controller = null;
   private final int FRONT_LEFT_MOTOR_PORT = 2;
-  private final int BACK_LEFT_MOTOR_PORT = 2;
-  private final int FRONT_RIGHT_MOTOR_PORT = 2;
-  private final int BACK_RIGHT_MOTOR_PORT = 2;
+  private final int BACK_LEFT_MOTOR_PORT = 3;
+  private final int FRONT_RIGHT_MOTOR_PORT = 0;
+  private final int BACK_RIGHT_MOTOR_PORT = 5;
   private SpeedController frontLeft = new PWMSparkMax(FRONT_LEFT_MOTOR_PORT);
   private SpeedController backLeft = new PWMSparkMax(BACK_LEFT_MOTOR_PORT);
   private SpeedController frontRight = new PWMSparkMax(FRONT_RIGHT_MOTOR_PORT);
@@ -34,7 +34,19 @@ public class Robot extends TimedRobot {
   private SpeedControllerGroup leftGroup = new SpeedControllerGroup(frontLeft, backLeft);
   private SpeedControllerGroup rightGroup = new SpeedControllerGroup(frontRight, backRight);
 
+  private double getControllerYAxisValue(XboxController controller, Hand side) {
 
+    switch (controller.getName()) {
+      case "Logitech Dual Action":
+      if (side == Hand.kLeft) {
+          return controller.getY(Hand.kLeft);
+      } else {
+          return controller.getRawAxis(3);
+      }
+      default:
+        return controller.getY(side);
+    }
+  }
 
   @Override
   public void robotInit() {
@@ -49,6 +61,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    m_myRobot.tankDrive(controller.getY(Hand.kLeft), controller.getY(Hand.kRight), true);
+    m_myRobot.tankDrive(controller.getY(Hand.kLeft),
+                        getControllerYAxisValue(controller, Hand.kRight),
+                        true);
   }
 }
