@@ -41,7 +41,8 @@ public class Robot extends TimedRobot {
       if (side == Hand.kLeft) {
           return controller.getY(Hand.kLeft);
       } else {
-          return controller.getRawAxis(3);
+        // This reverses the direction of the right motors.
+          return -controller.getRawAxis(3);
       }
       default:
         return controller.getY(side);
@@ -61,8 +62,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    m_myRobot.tankDrive(controller.getY(Hand.kLeft),
+    m_myRobot.tankDrive(-controller.getY(Hand.kLeft),
                         getControllerYAxisValue(controller, Hand.kRight),
-                        true);
+                        false);
   }
 }
