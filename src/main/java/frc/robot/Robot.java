@@ -4,14 +4,16 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.PWMSparkMax;
-import edu.wpi.first.wpilibj.PWMVictorSPX;
-import edu.wpi.first.wpilibj.SpeedController;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 /**
@@ -20,50 +22,185 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
  */
 public class Robot extends TimedRobot {
   private DifferentialDrive m_myRobot;
-  private Joystick m_leftStick;
-  private Joystick m_rightStick;
+  private Joystick leftStick = null;
+  private Joystick rightStick = null;
   private XboxController controller = null;
   private final int FRONT_LEFT_MOTOR_PORT = 2;
   private final int BACK_LEFT_MOTOR_PORT = 3;
   private final int FRONT_RIGHT_MOTOR_PORT = 0;
   private final int BACK_RIGHT_MOTOR_PORT = 5;
-  private SpeedController frontLeft = new PWMSparkMax(FRONT_LEFT_MOTOR_PORT);
-  private SpeedController backLeft = new PWMSparkMax(BACK_LEFT_MOTOR_PORT);
-  private SpeedController frontRight = new PWMSparkMax(FRONT_RIGHT_MOTOR_PORT);
-  private SpeedController backRight = new PWMSparkMax(BACK_RIGHT_MOTOR_PORT);
-  private SpeedControllerGroup leftGroup = new SpeedControllerGroup(frontLeft, backLeft);
-  private SpeedControllerGroup rightGroup = new SpeedControllerGroup(frontRight, backRight);
+  private MotorController frontLeft = new PWMSparkMax(FRONT_LEFT_MOTOR_PORT);
+  private MotorController backLeft = new PWMSparkMax(BACK_LEFT_MOTOR_PORT);
+  private MotorController frontRight = new PWMSparkMax(FRONT_RIGHT_MOTOR_PORT);
+  private MotorController backRight = new PWMSparkMax(BACK_RIGHT_MOTOR_PORT);
+  private MotorControllerGroup leftGroup = new MotorControllerGroup(frontLeft, backLeft);
+  private MotorControllerGroup rightGroup = new MotorControllerGroup(frontRight, backRight);
+
+  private NetworkTableEntry upKey, downKey, leftKey, rightKey = null; // Arrow keys
+  private NetworkTableEntry wKey, aKey, sKey, dKey = null;            // WASD
+
+  /**
+   * A simple enumeration to represent the side of the controller that we're trying to get.
+   */
+  private enum Hand {
+    LEFT,
+    RIGHT
+  }
 
   private double getControllerYAxisValue(XboxController controller, Hand side) {
 
     switch (controller.getName()) {
       case "Logitech Dual Action":
-      if (side == Hand.kLeft) {
-          return controller.getY(Hand.kLeft);
+      default:
+      if (side == Hand.LEFT) {
+          return controller.getLeftY();
       } else {
         // This reverses the direction of the right motors.
-          return -controller.getRawAxis(3);
+        // return -controller.getRawAxis(3);
+        return -controller.getRightY();
       }
-      default:
-        return controller.getY(side);
+      //default:
+      //  return controller.getY(side);
     }
   }
 
   @Override
   public void robotInit() {
     m_myRobot = new DifferentialDrive(leftGroup, rightGroup);
-    // m_leftStick = new Joystick(0);
-    // m_rightStick = new Joystick(1);
+
+  }
+
+
+  /**
+   * Initialize our input devices every time the robot is enabled, just to make it clear to the driver what's going on.
+   */
+  @Override
+  public void teleopInit() {
 
     // If there is no controller plugged in, code will be angry 
     // so make sure you have a controller plugged in when starting the robot
-    this.controller = new XboxController(0);
+    try {
+      System.err.printf("Attempting to initialize dual joysticks.\n");
+      leftStick = new Joystick(0);
+      rightStick = new Joystick(1);
+      if (leftStick.isConnected() && rightStick.isConnected()) {
+        System.out.printf("** Dual joysticks initialized. **\n");
+      } else {
+        System.out.printf("At least one of the joysticks is disconnected.\n");
+      }
+    } catch (Exception e) {
+      System.out.printf("Could not initialize dual joysticks on ports 0 and 1: %s.\n", e.getMessage());
+    }
+
+    try {
+      System.out.printf("Attempting to initialize XBoxController.\n");
+      controller = new XboxController(0);
+      if (controller.isConnected()) {
+        System.out.printf("** XBoxController initialized. **\n");
+      } else {
+        System.out.printf("XBox controller is not connected.\n");
+      }      
+    } catch (Exception e) {
+      System.out.printf("Could not initialize XBoxController: %s.\n", e.getMessage());
+    }
+
+    System.out.printf("Attempting to initialize NetworkTables.\n");
+    NetworkTableInstance networkTableInstance = NetworkTableInstance.getDefault();
+    if (networkTableInstance.isConnected()) {
+      NetworkTable inputTable = networkTableInstance.getTable("inputTable");
+      if (inputTable != null) {
+        upKey = inputTable.getEntry("Up");
+        downKey = inputTable.getEntry("Down");
+        leftKey = inputTable.getEntry("Left");
+        rightKey = inputTable.getEntry("Right");
+        wKey = inputTable.getEntry("w");
+        aKey = inputTable.getEntry("a");
+        sKey = inputTable.getEntry("s");
+        dKey = inputTable.getEntry("d");
+        System.out.printf("** NetworkTables initialized. **\n");
+      } else {
+        System.out.printf("Could not get reference to 'inputTable' network table.\n");  
+      }
+    } else {
+      System.out.printf("NetworkTables are not connected.");
+    }
+
+    if ((upKey == null      || !NetworkTableInstance.getDefault().isConnected()) && 
+        (controller == null || !controller.isConnected()) && 
+        (leftStick == null  || !leftStick.isConnected())  &&
+        (rightStick == null || !rightStick.isConnected())) {
+      System.out.printf("ERROR: No input methods succeeded.  Your robot cannot respond to human input!\n");  
+    }
+    super.teleopInit();
+  }
+
+  // Returns one of eight possible direction vectors (0, if you count the zero
+  // vector) depending on which of the directional keys you press.
+  private Translation2d getInputVectorFromKeyboard() {
+    double resultX = 0, resultY = 0;
+
+    // Vertical component.
+    if (wKey.getBoolean(false) || upKey.getBoolean(false)) {
+      resultY += 1.0;
+    }
+    if (sKey.getBoolean(false) || downKey.getBoolean(false)) {
+      resultY -= 1.0;
+    }
+
+    // Horizontal component.
+    if (aKey.getBoolean(false) || leftKey.getBoolean(false)) {
+      resultX -= 1.0;
+    } 
+    if (dKey.getBoolean(false) || rightKey.getBoolean(false)) {
+      resultX += 1.0;
+    }
+    return new Translation2d(resultX, resultY);
   }
 
   @Override
   public void teleopPeriodic() {
-    m_myRobot.tankDrive(-controller.getY(Hand.kLeft),
-                        getControllerYAxisValue(controller, Hand.kRight),
-                        false);
+    double left = 0, right = 0;
+
+    if (leftStick.isConnected() && rightStick.isConnected()) {
+      // Get the input vectors from both joysticks.
+      //
+      // Note that the motors are oriented such that one side has to be 
+      // reversed from the sense of the other.  This code is written so that
+      // pushing both joysticks forward drives the robot forward, too.
+      left += -leftStick.getY();
+      right += -rightStick.getY();
+      System.out.printf("Joysticks: L = %.2f, R = %.2f \n", leftStick.getY(), rightStick.getY());      
+    }
+    
+    if (controller.isConnected()) {
+      // TODO: This seems to trigger even if there's no XBox controller connected.  We may need to test for known controller names.
+      // Disabled until those tests can be done.
+      //
+      // Get the input vectors from both of the controller's joysticks.
+      //left += -controller.getLeftY();
+      //right += -controller.getRightY();
+    }
+    
+    if (upKey != null) {
+      // Get the input vectors from the keyboard using an arcade drive scheme.
+      Translation2d inputVector = getInputVectorFromKeyboard();      
+      final double speed = inputVector.getY();
+      final double rotation = inputVector.getX();
+
+      if (speed != 0 || rotation != 0) {
+        final double tankLeftRaw = speed + rotation;
+        final double tankRightRaw = speed - rotation;
+  
+        if (tankLeftRaw != 0 || tankRightRaw != 0) {
+          final double tankLeftNormalized = tankLeftRaw   / Math.max(Math.abs(tankLeftRaw), Math.abs(tankRightRaw));
+          final double tankRightNormalized = tankRightRaw / Math.max(Math.abs(tankLeftRaw), Math.abs(tankRightRaw));
+          left += tankLeftNormalized;
+          right += tankRightNormalized;
+        }
+        System.out.printf("Keys: V = (%.2f, %.2f); L = %.2f, R = %.2f \n", inputVector.getX(), inputVector.getY(), left, right);
+      }
+    }
+    System.out.printf("Final: L = %.2f, R = %.2f \n", left, right);      
+    m_myRobot.tankDrive(left, -right, false);
   }
 }
