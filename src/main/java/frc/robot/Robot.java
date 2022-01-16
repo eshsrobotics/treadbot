@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import javax.management.loading.PrivateClassLoader;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -39,6 +41,13 @@ public class Robot extends TimedRobot {
   private NetworkTableEntry upKey, downKey, leftKey, rightKey = null; // Arrow keys
   private NetworkTableEntry wKey, aKey, sKey, dKey = null;            // WASD
 
+  // hard coded ports for your human input devices
+  // unfortunatly we do not have a method for auto-discovery yet, 
+  //so you will have to change this to match your setup 
+  private final int LEFT_JOYSTICK_PORT = 0;
+  private final int RIGHT_JOYSTICK_PORT = 1;
+  private final int XBOX_CONTROLLER_PORT = 2;
+  
   /**
    * A simple enumeration to represent the side of the controller that we're trying to get.
    */
@@ -86,8 +95,8 @@ public class Robot extends TimedRobot {
     // so make sure you have a controller plugged in when starting the robot
     try {
       System.err.printf("Attempting to initialize dual joysticks.\n");
-      leftStick = new Joystick(0);
-      rightStick = new Joystick(1);
+      leftStick = new Joystick(LEFT_JOYSTICK_PORT);
+      rightStick = new Joystick(RIGHT_JOYSTICK_PORT);
       if (leftStick.isConnected() && rightStick.isConnected()) {
         System.out.printf("** Dual joysticks initialized. **\n");
       } else {
@@ -99,13 +108,13 @@ public class Robot extends TimedRobot {
 
     try {
       System.out.printf("Attempting to initialize XBoxController.\n");
-      controller = new XboxController(0);
+      controller = new XboxController(XBOX_CONTROLLER_PORT);
       if (controller.isConnected()) {
         System.out.printf("** XBoxController initialized. **\n");
 
         // unfortunately, control makes it here if we have the ordinary joysticks plugged in.
         // we need something else to distinguish x-box controller to the original joysticks
-        System.out.printf("controller name: %s", controller.getName());
+        System.out.printf("controller name: %s\n", controller.getName());
       } else {
         System.out.printf("XBox controller is not connected.\n");
       }      
@@ -186,8 +195,8 @@ public class Robot extends TimedRobot {
       // Disabled until those tests can be done.
       //
       // Get the input vectors from both of the controller's joysticks.
-      //left += -controller.getLeftY();
-      //right += -controller.getRightY();
+      left += -controller.getLeftY();
+      right += -controller.getRightY();
     }
     
     if (upKey != null) {
