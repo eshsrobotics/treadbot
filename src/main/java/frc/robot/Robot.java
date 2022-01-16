@@ -47,6 +47,12 @@ public class Robot extends TimedRobot {
     RIGHT
   }
 
+  /**
+   * Returns the vertical axis values for each of the joysticks on the Xbox controller.
+   * @param controller The Xbox controller object.
+   * @param side The side of the joystick one's preferences are for.
+   * @return
+   */
   private double getControllerYAxisValue(XboxController controller, Hand side) {
 
     switch (controller.getName()) {
@@ -67,7 +73,6 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_myRobot = new DifferentialDrive(leftGroup, rightGroup);
-
   }
 
 
@@ -97,6 +102,10 @@ public class Robot extends TimedRobot {
       controller = new XboxController(0);
       if (controller.isConnected()) {
         System.out.printf("** XBoxController initialized. **\n");
+
+        // unfortunately, control makes it here if we have the ordinary joysticks plugged in.
+        // we need something else to distinguish x-box controller to the original joysticks
+        System.out.printf("controller name: %s", controller.getName());
       } else {
         System.out.printf("XBox controller is not connected.\n");
       }      
