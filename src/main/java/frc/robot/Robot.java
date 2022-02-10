@@ -8,6 +8,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
@@ -38,6 +40,10 @@ public class Robot extends TimedRobot {
 
   private NetworkTableEntry upKey, downKey, leftKey, rightKey = null; // Arrow keys
   private NetworkTableEntry wKey, aKey, sKey, dKey = null;            // WASD
+  
+  //Pneumatics
+  private final Compressor comp = new Compressor();
+  private final DoubleSolenoid solenoid = new DoubleSolenoid(0, 1);
 
   /**
    * A simple enumeration to represent the side of the controller that we're trying to get.
