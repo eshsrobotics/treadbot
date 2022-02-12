@@ -11,11 +11,13 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 /**
@@ -42,8 +44,8 @@ public class Robot extends TimedRobot {
   private NetworkTableEntry wKey, aKey, sKey, dKey = null;            // WASD
   
   //Pneumatics
-  private final Compressor comp = new Compressor();
-  private final DoubleSolenoid solenoid = new DoubleSolenoid(0, 1);
+  private final Compressor comp = new Compressor(PneumaticsModuleType.CTREPCM);
+  private final DoubleSolenoid solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
 
   /**
    * A simple enumeration to represent the side of the controller that we're trying to get.
@@ -82,6 +84,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopInit() {
+    comp.disable();
 
     // If there is no controller plugged in, code will be angry 
     // so make sure you have a controller plugged in when starting the robot
@@ -208,5 +211,18 @@ public class Robot extends TimedRobot {
     }
     System.out.printf("Final: L = %.2f, R = %.2f \n", left, right);      
     m_myRobot.tankDrive(left, -right, false);
+
+    //Pneumatics Test
+    if (controller.getLeftBumper()) {
+      solenoid.set(DoubleSolenoid.Value.kForward);
+    } else if (controller.getRightBumper()) {
+      solenoid.set(DoubleSolenoid.Value.kReverse);
+    }
+
+    if (controller.getAButton()) {
+      comp.enabled();
+    } else  if (controller.getAButton()) {
+      comp.disable();
+    }
   }
 }
