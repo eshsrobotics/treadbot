@@ -131,10 +131,10 @@ public class Robot extends TimedRobot {
         downKey = inputTable.getEntry("Down");
         leftKey = inputTable.getEntry("Left");
         rightKey = inputTable.getEntry("Right");
-        wKey = inputTable.getEntry("w");
-        aKey = inputTable.getEntry("a");
-        sKey = inputTable.getEntry("s");
-        dKey = inputTable.getEntry("d");
+        wKey = inputTable.getEntry("W");
+        aKey = inputTable.getEntry("A");
+        sKey = inputTable.getEntry("S");
+        dKey = inputTable.getEntry("D");
         System.out.printf("** NetworkTables initialized. **\n");
       } else {
         System.out.printf("Could not get reference to 'inputTable' network table.\n");  
@@ -191,9 +191,6 @@ public class Robot extends TimedRobot {
     }
     
     if (controller.isConnected()) {
-      // TODO: This seems to trigger even if there's no XBox controller connected.  We may need to test for known controller names.
-      // Disabled until those tests can be done.
-      //
       // Get the input vectors from both of the controller's joysticks.
       left += -controller.getLeftY();
       right += -controller.getRightY();
