@@ -13,7 +13,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -23,7 +22,6 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
  * it contains the code necessary to operate a robot with tank drive.
  */
 public class Robot extends TimedRobot {
-  private DifferentialDrive m_myRobot;
   private Joystick leftStick = null;
   private Joystick rightStick = null;
   private XboxController controller = null;
@@ -35,8 +33,6 @@ public class Robot extends TimedRobot {
   private MotorController backLeft = new PWMSparkMax(BACK_LEFT_MOTOR_PORT);
   private MotorController frontRight = new PWMSparkMax(FRONT_RIGHT_MOTOR_PORT);
   private MotorController backRight = new PWMSparkMax(BACK_RIGHT_MOTOR_PORT);
-  private MotorControllerGroup leftGroup = new MotorControllerGroup(frontLeft, backLeft);
-  private MotorControllerGroup rightGroup = new MotorControllerGroup(frontRight, backRight);
 
   private NetworkTableEntry upKey, downKey, leftKey, rightKey = null; // Arrow keys
   private NetworkTableEntry wKey, aKey, sKey, dKey = null;            // WASD
@@ -81,7 +77,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    m_myRobot = new DifferentialDrive(leftGroup, rightGroup);
   }
 
 
@@ -216,6 +211,10 @@ public class Robot extends TimedRobot {
       }
     }
     System.out.printf("Final: L = %.2f, R = %.2f \n", left, right);      
-    m_myRobot.tankDrive(left, -right, false);
+    frontLeft.set(left);
+    frontRight.set(right);
+    backLeft.set(left);
+    backRight.set(right);
+
   }
 }
